@@ -13,10 +13,10 @@ OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(wildcard $(SRC_DIR)/*.c
 
 
 main: $(OBJ_FILES)
-	$(CC) $(LDFLAGS) -o bin/$@ $^
+	$(CC) -o bin/$@ $^ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) -o $@ -c $< $(CFLAGS)
 
 all: clean main
 
@@ -39,7 +39,7 @@ ifeq ("$(wildcard $(FILE))", "")
 	@echo '' >> $(FILE)
 	@echo '#endif  // $(HEADER_NAME)' >> $(FILE)
 
-	@echo "Created c++ header file ($(FILE)) with header guard ($(HEADER_NAME)) and source file ($(SOURCE_FILE))."
+	@echo "Created header file ($(FILE)) with header guard ($(HEADER_NAME)) and source file ($(SOURCE_FILE))."
 	git add $(FILE) $(SOURCE_FILE)
 
 else
