@@ -1,6 +1,7 @@
 #include "window.h"
-
-#include <stdio.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_surface.h>
+#include <SDL2/SDL_video.h>
 
 #define BACKGROUND_COLOR 0x18, 0x18, 0x18, 0xff
 
@@ -14,8 +15,7 @@ int init(Window* window) {
         return -1;
     }
 
-    window->window = SDL_CreateWindow("Hello World", SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
+    window->window = SDL_CreateWindow("Hello World", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH,
         WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     if (window->window == NULL) {
         fprintf(stderr, "could not create window: %s\n", SDL_GetError());
@@ -43,15 +43,48 @@ void render(Window* window, Maze* maze) {
 
     const int tileW = WINDOW_WIDTH / MAZE_WIDTH;
     const int tileH = WINDOW_HEIGHT / MAZE_HEIGHT;
-
+    
+    SDL_Rect rect; 
     for (int i = 0; i < MAZE_SIZE; i++) {
-        if (maze->tiles[i] == PATH) {
-            SDL_SetRenderDrawColor(window->renderer, 0xcd, 0xcd, 0xcd, 0xff); // gray background
-            SDL_Rect rect = { (i % MAZE_WIDTH) * tileW, (i / MAZE_WIDTH) * tileH, tileW, tileH };
-        
+        rect.x = (i % MAZE_WIDTH) * tileW;
+        rect.y = (i / MAZE_WIDTH) * tileH;
+        rect.w = tileW;
+        rect.h = tileH;
+        switch (maze->tiles[i]) {
+        case Path:
+            SDL_SetRenderDrawColor(window->renderer, 0xcd, 0xcd, 0xcd, 0xff); // white path
             SDL_RenderFillRect(window->renderer, &rect);
+            break;
+        case Wall:
+            // SDL_SetRenderDrawColor(window->renderer, 0x00, 0x22, 0xaa, 0xff); // white path
+            // SDL_RenderFillRect(window->renderer, &rect);
+            break;
+        default:
+            break;
         }
+
     }
+
+    SDL_RenderPresent(window->renderer);
+}
+
+void renderTile(Window *window, Maze *maze, int index) {
+    const int tileW = WINDOW_WIDTH / MAZE_WIDTH;
+    const int tileH = WINDOW_HEIGHT / MAZE_HEIGHT;
+
+    SDL_Rect rect; 
+    rect.x = (index % MAZE_WIDTH) * tileW;
+    rect.y = (index / MAZE_WIDTH) * tileH;
+    rect.w = tileW;
+    rect.h = tileH;
+
+    // SDL_RenderSetClipRect(window->renderer, &rect);
+
+    // SDL_SetRenderDrawColor(window->renderer, BACKGROUND_COLOR); // gray background
+    // SDL_RenderClear(window->renderer);
+
+    SDL_SetRenderDrawColor(window->renderer, 0xcd, 0xcd, 0xcd, 0xff); // white path
+    SDL_RenderFillRect(window->renderer, &rect);
 
     SDL_RenderPresent(window->renderer);
 }
@@ -61,3 +94,4 @@ void quit(Window* window) {
     SDL_DestroyWindow(window->window);
     SDL_Quit();
 }
+

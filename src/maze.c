@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 
-static int getNeighbors(int index, int* neighbors) {
+int getNeighbors(int index, int* neighbors) {
 
     int count = 0;
 
@@ -26,7 +26,7 @@ static int getNeighbors(int index, int* neighbors) {
     return count;
 }
 
-static int getCorners(int index, int prev, int* neighbors) {
+int getCorners(int index, int prev, int* neighbors) {
 
     int count = 0;
 
@@ -70,16 +70,28 @@ static int getCorners(int index, int prev, int* neighbors) {
     return count;
 }
 
-
-void genMaze(Maze* maze, Window* window) {
-    memset(maze->tiles, NONE, MAZE_SIZE);
+void initMaze(Maze* maze) {
+    memset(maze->tiles, Clear, sizeof(maze->tiles));
     srand(time(NULL));
 
     int start = rand() % MAZE_SIZE;
+    maze->start = start;
+    maze->state = Generating;
+}
+
+void genMaze(Maze* maze) {
+    memset(maze->tiles, Clear, sizeof(maze->tiles));
+    srand(time(NULL));
+
+    int start = rand() % MAZE_SIZE;
+    maze->start = start;
+    maze->state = Generating;
+
     int path[MAZE_SIZE] = { 0 };
     int pathTop = 0;
 
-    int index = start;
+    int index = maze->start;
+    maze->tiles[index] = Path;
     do {
 
         int neighbors[4] = { 0 };
@@ -91,24 +103,13 @@ void genMaze(Maze* maze, Window* window) {
         // printf("\n");
         
         for (int i = 0; i < count; i++) {
-            if (maze->tiles[neighbors[i]] == NONE) {  // possible tile
-                int nn[4];
-                int cc = getNeighbors(neighbors[i], nn);
+            if (maze->tiles[neighbors[i]] == Clear) {  // possible tile
+                int nn[6];
+                int cc = getNeighbors(neighbors[i], &nn[0]);
+                cc += getCorners(neighbors[i], index, &nn[cc]);
                 for (int j = 0; j < cc; j++) {
-                    if (maze->tiles[nn[j]] == PATH && nn[j] != index) {  // paths should never intercept
-                        maze->tiles[neighbors[i]] = WALL;  // contains paths on two sides, not accessible
-                        for (int k = i; k < count - 1; k++) {
-                            neighbors[k] = neighbors[k + 1];
-                        }
-                        count--;
-                        i--;
-                        break;
-                    }
-                }
-                cc = getCorners(neighbors[i], index, nn);
-                for (int j = 0; j < cc; j++) {
-                    if (maze->tiles[nn[j]] == PATH) {  // paths should never intercept at corners either
-                        maze->tiles[neighbors[i]] = WALL;  // contains paths on two sides, not accessible
+                    if (maze->tiles[nn[j]] == Path && nn[j] != index) {  // paths should never intercept
+                        maze->tiles[neighbors[i]] = Wall;  // contains paths on two sides, not accessible
                         for (int k = i; k < count - 1; k++) {
                             neighbors[k] = neighbors[k + 1];
                         }
@@ -127,7 +128,6 @@ void genMaze(Maze* maze, Window* window) {
             }
         }
 
-        maze->tiles[index] = PATH;
         if (count == 0) {  // no tile was found -> go back
             index = path[--pathTop];
         }
@@ -142,14 +142,54 @@ void genMaze(Maze* maze, Window* window) {
         // }
         // printf("\n");
 
-        // const int tileW = WINDOW_WIDTH / MAZE_WIDTH;
-        // const int tileH = WINDOW_HEIGHT / MAZE_HEIGHT;
-
-        // SDL_SetRenderDrawColor(window->renderer, 0xcd, 0xcd, 0xcd, 0xff); // gray background
-        // SDL_Rect rect = { (index % MAZE_WIDTH) * tileW, (index / MAZE_WIDTH) * tileH, tileW, tileH };
-
-        // SDL_RenderFillRect(window->renderer, &rect);
-        // SDL_RenderPresent(window->renderer);
-
     } while (pathTop > 0);
+
+    maze->state = Done;
 }
+
+int stepMaze(Maze* maze, int* path, int* pathTop) {
+    int index = path[*pathTop - 1];
+    int neighbors[4] = { 0 }; 
+    int count = getNeighbors(index, neighbors);
+
+    for (int i = 0; i < count; i++) {
+        if (maze->tiles[neighbors[i]] == Clear) {  // possible tile
+            int nn[6];
+            int cc = getNeighbors(neighbors[i], &nn[0]);
+            cc += getCorners(neighbors[i], index, &nn[cc]);
+            for (int j = 0; j < cc; j++) {
+                if (maze->tiles[nn[j]] == Path && nn[j] != index) {  // paths should never intercept
+                    maze->tiles[neighbors[i]] = Wall;  // contains paths on two sides, not accessible
+                    for (int k = i; k < count - 1; k++) {
+                        neighbors[k] = neighbors[k + 1];
+                    }
+                    count--;
+                    i--;
+                    break;
+                }
+            }
+        }
+        else {  // tile is either wall or already explored -> remove as neighbor
+            for (int j = i; j < count - 1; j++) {
+                neighbors[j] = neighbors[j + 1];
+            }
+            count--;
+            i--;
+        }
+    }
+
+    maze->tiles[index] = Path;
+    if (count == 0) {  // no tile was found -> go back
+        *pathTop -= 1; 
+    }
+    else {
+        path[(*pathTop)++] = neighbors[rand() % count];
+        return 1;
+    }
+    
+    if (*pathTop < 0) {
+        maze->state = Done;
+    }
+    return 0;
+}
+

@@ -13,8 +13,9 @@ typedef struct {
 
 #include "maze.h"
 
-int init(Window*);
-void render(Window*, Maze*);
-void quit(Window*);
+int init(Window* window);
+void render(Window* window, Maze* maze);
+void renderTile(Window* window, Maze* maze, int index);
+void quit(Window* window);
 
 #endif // WINDOW_H

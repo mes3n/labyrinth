@@ -1,20 +1,38 @@
 #ifndef MAZE_H
 #define MAZE_H
 
-#define MAZE_WIDTH  200
-#define MAZE_HEIGHT 200
+#define MAZE_WIDTH  100
+#define MAZE_HEIGHT 100
 #define MAZE_SIZE (MAZE_WIDTH * MAZE_HEIGHT)
 
-#define NONE 0
-#define PATH 1
-#define WALL 2
+// #define NONE 0
+// #define PATH 1
+// #define WALL 2
+
+typedef enum {
+    Clear,
+    Path,
+    Wall,
+    Head,
+} Tile;
+
+typedef enum {
+    Generating,
+    Solving,
+    Done,
+} MazeState;
 
 typedef struct {
-    char tiles[MAZE_SIZE];
+    Tile tiles[MAZE_SIZE];
+    MazeState state;
+
+    int start;
+    int end;
 } Maze;
 
-#include "window.h"
-
-void genMaze(Maze* maze, Window* window);
+void initMaze(Maze* maze);
+void genMaze(Maze* maze);
+int stepMaze(Maze* maze, int* path, int* pathTop);
 
 #endif // MAZE_H
+
