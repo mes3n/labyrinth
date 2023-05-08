@@ -76,16 +76,12 @@ void initMaze(Maze* maze) {
 
     int start = rand() % MAZE_SIZE;
     maze->start = start;
+    maze->end = start;
     maze->state = Generating;
 }
 
 void genMaze(Maze* maze) {
-    memset(maze->tiles, Clear, sizeof(maze->tiles));
-    srand(time(NULL));
-
-    int start = rand() % MAZE_SIZE;
-    maze->start = start;
-    maze->state = Generating;
+    initMaze(maze);
 
     int path[MAZE_SIZE] = { 0 };
     int pathTop = 0;

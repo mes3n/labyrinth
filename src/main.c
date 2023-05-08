@@ -7,6 +7,8 @@
 
 #include <stdlib.h>
 
+#include <stdio.h>
+
 int main(void) {
 
     Window window;
@@ -19,6 +21,7 @@ int main(void) {
     initMaze(&maze);
     int *path = malloc(sizeof(int) * MAZE_SIZE);
     int pathTop = 0;
+    int maxLenPath = 0;
     path[pathTop++] = maze.start;
 
     int mainloop = 1;
@@ -37,6 +40,12 @@ int main(void) {
         
         if (maze.state == Generating) {
             if (stepMaze(&maze, path, &pathTop)) {
+
+                if (pathTop > maxLenPath) {
+                    maze.end = path[pathTop - 1];
+                    maxLenPath = pathTop;
+                }
+
                 // renderTile(&window, &maze, path[pathTop - 1]);
                 render(&window, &maze);
             }
