@@ -7,7 +7,6 @@
 
 #include <stdlib.h>
 
-#include <stdio.h>
 
 int main(void) {
 
@@ -17,8 +16,9 @@ int main(void) {
     }
 
     Maze maze;
-    // genMaze(&maze);
     initMaze(&maze);
+
+    // Generation variables
     int *path = malloc(sizeof(int) * MAZE_SIZE);
     int pathTop = 0;
     int maxLenPath = 0;
@@ -31,7 +31,13 @@ int main(void) {
             mainloop = 0;
             break;
         case Solve:
-            maze.state = maze.state == Generating ? Generating : Solving;
+            if (maze.state != Generating) {
+                path = malloc(sizeof(int) * MAZE_SIZE);
+                pathTop = 0;
+                path[pathTop++] = maze.start;
+
+                maze.state = Solving;
+            }
             break;
         case None:
         default:
@@ -40,21 +46,29 @@ int main(void) {
         
         if (maze.state == Generating) {
             if (stepMaze(&maze, path, &pathTop)) {
+                // renderTile(&window, &maze, path[pathTop - 1]);
+                render(&window, &maze);
 
                 if (pathTop > maxLenPath) {
                     maze.end = path[pathTop - 1];
                     maxLenPath = pathTop;
                 }
-
-                // renderTile(&window, &maze, path[pathTop - 1]);
-                render(&window, &maze);
             }
             else if (pathTop < 0) {
                 free(path);
             }
         }
         else if (maze.state == Solving) {
-            
+            if (solveMaze(&maze, path, &pathTop)) {
+                // renderTile(&window, &maze, path[pathTop - 1]);
+                render(&window, &maze);
+            }
+            else if (maze.state == Done) {
+                for (int i = 0; i < pathTop; i++) {
+                    maze.tiles[path[i]] = True;
+                }
+                free(path);
+            }
         }
         else {
             render(&window, &maze);

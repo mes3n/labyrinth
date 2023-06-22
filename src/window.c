@@ -52,9 +52,16 @@ void render(Window* window, Maze* maze) {
         rect.h = tileH;
         switch (maze->tiles[i]) {
         case Path:
-            SDL_SetRenderDrawColor(window->renderer, i == maze->end ? 0x00 : 0xcd, i == maze->start ? 0x00 : 0xcd, 0xcd, 0xff); // white path
+            SDL_SetRenderDrawColor(window->renderer, 0xff, (i == maze->end ? 0x00 : 0xcd), (i == maze->start ? 0x00 : 0xcd), 0xff); // white path
             SDL_RenderFillRect(window->renderer, &rect);
             break;
+        case Expl:
+            SDL_SetRenderDrawColor(window->renderer, (i == maze->end ? 0x00 : 0xcd), 0xff, (i == maze->start ? 0x00 : 0xcd), 0xff); // white path
+            SDL_RenderFillRect(window->renderer, &rect);
+            break;
+        case True:
+            SDL_SetRenderDrawColor(window->renderer, (i == maze->end ? 0x00 : 0xcd), (i == maze->start ? 0x00 : 0xcd), 0xff, 0xff); // white path
+            SDL_RenderFillRect(window->renderer, &rect);
         case Wall:
             // SDL_SetRenderDrawColor(window->renderer, 0x00, 0x22, 0xaa, 0xff); // white path
             // SDL_RenderFillRect(window->renderer, &rect);

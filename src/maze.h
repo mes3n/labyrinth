@@ -13,7 +13,8 @@ typedef enum {
     Clear,
     Path,
     Wall,
-    Head,
+    Expl,
+    True,
 } Tile;
 
 typedef enum {
@@ -33,6 +34,7 @@ typedef struct {
 void initMaze(Maze* maze);
 void genMaze(Maze* maze);
 int stepMaze(Maze* maze, int* path, int* pathTop);
+int solveMaze(Maze* maze, int* path, int* pathTop);
 
 #endif // MAZE_H
 

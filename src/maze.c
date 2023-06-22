@@ -91,14 +91,14 @@ void genMaze(Maze* maze) {
     do {
 
         int neighbors[4] = { 0 };
-        int count = getNeighbors(index, neighbors);
+        int neighborCount = getNeighbors(index, neighbors);
 
         // for (int i = 0; i < pathTop; i++) {
         //     printf("%d, ", path[i]);
         // }
         // printf("\n");
         
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < neighborCount; i++) {
             if (maze->tiles[neighbors[i]] == Clear) {  // possible tile
                 int nn[6];
                 int cc = getNeighbors(neighbors[i], &nn[0]);
@@ -106,30 +106,30 @@ void genMaze(Maze* maze) {
                 for (int j = 0; j < cc; j++) {
                     if (maze->tiles[nn[j]] == Path && nn[j] != index) {  // paths should never intercept
                         maze->tiles[neighbors[i]] = Wall;  // contains paths on two sides, not accessible
-                        for (int k = i; k < count - 1; k++) {
+                        for (int k = i; k < neighborCount - 1; k++) {
                             neighbors[k] = neighbors[k + 1];
                         }
-                        count--;
+                        neighborCount--;
                         i--;
                         break;
                     }
                 }
             }
             else {  // tile is either wall or already explored -> remove as neighbor
-                for (int j = i; j < count - 1; j++) {
+                for (int j = i; j < neighborCount - 1; j++) {
                     neighbors[j] = neighbors[j + 1];
                 }
-                count--;
+                neighborCount--;
                 i--;
             }
         }
 
-        if (count == 0) {  // no tile was found -> go back
+        if (neighborCount == 0) {  // no tile was found -> go back
             index = path[--pathTop];
         }
         else {
             path[pathTop++] = index;
-            index = neighbors[rand() % count];
+            index = neighbors[rand() % neighborCount];
         }
         
         // for (int i = 0; i < MAZE_SIZE; i++) {
@@ -146,9 +146,9 @@ void genMaze(Maze* maze) {
 int stepMaze(Maze* maze, int* path, int* pathTop) {
     int index = path[*pathTop - 1];
     int neighbors[4] = { 0 }; 
-    int count = getNeighbors(index, neighbors);
+    int neighborCount = getNeighbors(index, neighbors);
 
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < neighborCount; i++) {
         if (maze->tiles[neighbors[i]] == Clear) {  // possible tile
             int nn[6];
             int cc = getNeighbors(neighbors[i], &nn[0]);
@@ -156,30 +156,30 @@ int stepMaze(Maze* maze, int* path, int* pathTop) {
             for (int j = 0; j < cc; j++) {
                 if (maze->tiles[nn[j]] == Path && nn[j] != index) {  // paths should never intercept
                     maze->tiles[neighbors[i]] = Wall;  // contains paths on two sides, not accessible
-                    for (int k = i; k < count - 1; k++) {
+                    for (int k = i; k < neighborCount - 1; k++) {
                         neighbors[k] = neighbors[k + 1];
                     }
-                    count--;
-                    i--;
+                    neighborCount -= 1;
+                    i -= 1;
                     break;
                 }
             }
         }
         else {  // tile is either wall or already explored -> remove as neighbor
-            for (int j = i; j < count - 1; j++) {
+            for (int j = i; j < neighborCount - 1; j++) {
                 neighbors[j] = neighbors[j + 1];
             }
-            count--;
-            i--;
+            neighborCount -= 1;
+            i -= 1;
         }
     }
 
     maze->tiles[index] = Path;
-    if (count == 0) {  // no tile was found -> go back
+    if (neighborCount <= 0) {  // no tile was found -> go back
         *pathTop -= 1; 
     }
     else {
-        path[(*pathTop)++] = neighbors[rand() % count];
+        path[(*pathTop)++] = neighbors[rand() % neighborCount];  // select random neighbor
         return 1;
     }
     
@@ -187,5 +187,35 @@ int stepMaze(Maze* maze, int* path, int* pathTop) {
         maze->state = Done;
     }
     return 0;
+}
+
+int solveMaze (Maze* maze, int* path, int* pathTop) {
+    int index = path[*pathTop - 1];
+    int neighbors[4] = { 0 }; 
+    int neighborCount = getNeighbors(index, neighbors);
+
+    for (int i = 0; i < neighborCount; i++) {
+        if (maze->tiles[neighbors[i]] != Path) {  // neighbor tile is not viable
+            for (int j = i; j < neighborCount - 1; j++) {
+                neighbors[j] = neighbors[j + 1];
+            }
+            neighborCount -= 1;
+            i -= 1;
+        }
+    }
+
+    maze->tiles[index] = Expl;
+    if (neighborCount <= 0) {
+        *pathTop -= 1;
+    }
+    else {
+        path[(*pathTop)++] = neighbors[0];  // select first neighbor
+        return 1;    
+    }
+
+    if (index == maze->end) {  // maze was solved§
+        maze->state = Done;
+    }
+    return 0;  // if above flag not set -> fail
 }
 
